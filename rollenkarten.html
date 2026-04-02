@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rollenkarten – Gebäudedienst</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #0c0c0c;
+  --bg2:    #141414;
+  --bg3:    #1c1c1c;
+  --bg4:    #242424;
+  --border: rgba(255,255,255,0.07);
+  --bord2:  rgba(255,255,255,0.13);
+  --text:   #ede9e3;
+  --muted:  #7a7672;
+  --hint:   #3e3c3a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 300;
+  flex-shrink: 0;
+}
+.topbar-logo { font-size: 11px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.topbar-clock { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--hint); }
+
+/* ── LAYOUT ── */
+.layout { display: flex; flex: 1; overflow: hidden; height: calc(100vh - 104px); }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 240px; flex-shrink: 0;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow-y: auto; overflow-x: hidden;
+}
+.sidebar-head { padding: 20px 18px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.sidebar-title { font-size: 10px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.sidebar-count { font-size: 20px; font-weight: 300; color: var(--text); }
+.sidebar-count span { font-weight: 600; }
+
+.grp-label { font-size: 10px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--hint); padding: 12px 18px 5px; display: block; }
+.grp-sep { border-top: 1px solid var(--border); margin-top: 4px; }
+
+.person-btn {
+  width: 100%; display: flex; align-items: center; gap: 11px;
+  padding: 8px 18px; background: none; border: none;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: background .12s; text-align: left;
+  border-left: 2px solid transparent;
+}
+.person-btn:hover { background: var(--bg3); }
+.person-btn.active { background: var(--bg3); border-left-color: var(--acc, #888); }
+
+.pav {
+  width: 30px; height: 30px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; flex-shrink: 0; letter-spacing: .03em;
+}
+.pinfo { flex: 1; min-width: 0; }
+.pname { font-size: 12px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prole { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── MAIN ── */
+.main { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 36px 44px 80px; }
+
+.empty-state {
+  height: 100%; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px; color: var(--muted);
+}
+.empty-icon { width: 44px; height: 44px; border: 1px solid var(--bord2); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
+.empty-title { font-size: 15px; font-weight: 500; color: var(--text); }
+.empty-sub { font-size: 13px; color: var(--muted); }
+
+/* ── PROFILE HEADER ── */
+.profile-header {
+  display: flex; align-items: flex-start; gap: 20px;
+  margin-bottom: 32px; padding-bottom: 28px;
+  border-bottom: 1px solid var(--border);
+}
+.profile-av-lg {
+  width: 58px; height: 58px; border-radius: 13px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 600; flex-shrink: 0;
+}
+.profile-meta { flex: 1; }
+.profile-badge {
+  display: inline-block; font-size: 10px; font-weight: 500;
+  letter-spacing: .07em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 20px; margin-bottom: 7px;
+}
+.profile-title { font-size: 24px; font-weight: 300; color: var(--text); margin-bottom: 5px; line-height: 1.2; }
+.profile-title strong { font-weight: 600; }
+.profile-desc { font-size: 13px; color: var(--muted); max-width: 520px; line-height: 1.7; }
+
+.header-actions { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+.btn-edit {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 500;
+  padding: 7px 14px; border-radius: 8px;
+  border: 1px solid var(--bord2); background: none;
+  color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all .15s; white-space: nowrap;
+}
+.btn-edit:hover { background: var(--bg3); color: var(--text); border-color: rgba(255,255,255,.2); }
+.btn-edit.active { background: var(--bg4); color: var(--text); border-color: rgba(255,255,255,.25); }
+
+.btn-save {
+  display: none; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 500;
+  padding: 7px 14px; border-radius: 8px;
+  border: 1px solid #1D9E75; background: rgba(29,158,117,.15);
+  color: #5dc9a0; cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all .15s; white-space: nowrap;
+}
+.btn-save:hover { background: rgba(29,158,117,.25); }
+.btn-save.show { display: flex; }
+
+/* ── KPI ROW ── */
+.kpi-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 32px; }
+.kpi-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 9px; padding: 12px 14px; }
+.kpi-val { font-size: 18px; font-weight: 500; color: var(--text); font-family: 'DM Mono', monospace; margin-bottom: 2px; }
+.kpi-label { font-size: 11px; color: var(--muted); }
+
+/* ── SECTIONS GRID ── */
+.sections-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.sections-grid.single { grid-template-columns: 1fr; }
+
+.sec-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 11px; padding: 15px 16px;
+}
+
+.sec-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.sec-title { font-size: 10px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); flex: 1; }
+.sec-icon { font-size: 13px; }
+
+.freq-tag { font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 20px; letter-spacing: .03em; }
+.f-daily   { background: rgba(210,90,90,.14); color: #d48a8a; }
+.f-weekly  { background: rgba(210,170,80,.14); color: #d4c07a; }
+.f-monthly { background: rgba(90,170,90,.14); color: #82c282; }
+.f-event   { background: rgba(90,140,210,.14); color: #82a8d4; }
+
+/* ── ITEMS ── */
+.item-list { display: flex; flex-direction: column; gap: 4px; }
+.item-row {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 6px 8px; border-radius: 7px;
+  border: 1px solid transparent;
+  transition: border-color .12s, background .12s;
+}
+.item-row:hover { background: var(--bg3); border-color: var(--border); }
+
+.item-dot { width: 5px; height: 5px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+
+.item-text { font-size: 12px; color: var(--text); flex: 1; line-height: 1.5; }
+.item-sub  { font-size: 11px; color: var(--hint); margin-top: 1px; }
+
+/* ── DECISION ROWS ── */
+.decision-list { display: flex; flex-direction: column; gap: 5px; }
+.dec-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 9px 12px;
+  transition: background .12s;
+}
+.dec-row:hover { background: var(--bg3); }
+.dec-sit { flex: 1; font-size: 12px; color: var(--text); }
+.dec-badge { font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 20px; white-space: nowrap; letter-spacing: .03em; }
+.d-self  { background: rgba(90,170,90,.18); color: #82c282; }
+.d-ask   { background: rgba(210,170,80,.18); color: #d4c07a; }
+.d-never { background: rgba(100,100,100,.18); color: var(--muted); }
+.d-esc   { background: rgba(210,90,90,.18); color: #d48a8a; }
+
+/* ── RULE CARDS ── */
+.rule-list { display: flex; flex-direction: column; gap: 5px; }
+.rule-card {
+  display: flex; align-items: flex-start; gap: 9px;
+  padding: 10px 12px; border-radius: 8px; border: 1px solid;
+  font-size: 12px; line-height: 1.6;
+}
+.r-green { background: rgba(90,170,90,.07); border-color: rgba(90,170,90,.22); color: #a8d8a8; }
+.r-amber { background: rgba(210,170,80,.07); border-color: rgba(210,170,80,.22); color: #d4c48a; }
+.r-red   { background: rgba(210,90,90,.07); border-color: rgba(210,90,90,.22); color: #d4a0a0; }
+.rule-icon { flex-shrink: 0; font-size: 12px; margin-top: 1px; }
+
+/* ── EDIT MODE ── */
+.edit-mode .item-text,
+.edit-mode .dec-sit,
+.edit-mode .kpi-val,
+.edit-mode .kpi-label,
+.edit-mode .profile-desc {
+  outline: none;
+  border-radius: 4px;
+  padding: 1px 4px;
+  margin: -1px -4px;
+  transition: background .12s;
+}
+.edit-mode .item-text:hover,
+.edit-mode .dec-sit:hover,
+.edit-mode .kpi-val:hover,
+.edit-mode .kpi-label:hover,
+.edit-mode .profile-desc:hover {
+  background: rgba(255,255,255,.06);
+  cursor: text;
+}
+.edit-mode [contenteditable]:focus {
+  background: rgba(255,255,255,.08);
+  outline: 1px solid rgba(255,255,255,.2);
+}
+.edit-mode .item-row,
+.edit-mode .dec-row {
+  border-color: var(--border);
+}
+
+.edit-hint {
+  display: none;
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  margin-bottom: 16px;
+  align-items: center;
+  gap: 6px;
+}
+.edit-hint.show { display: flex; }
+
+.add-item-btn {
+  display: none;
+  align-items: center; gap: 5px;
+  font-size: 11px; color: var(--hint);
+  background: none; border: 1px dashed var(--hint);
+  border-radius: 6px; padding: 4px 10px;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all .12s; margin-top: 4px; width: 100%;
+}
+.add-item-btn:hover { color: var(--muted); border-color: var(--muted); background: var(--bg3); }
+.edit-mode .add-item-btn { display: flex; }
+
+.delete-btn {
+  display: none;
+  background: none; border: none;
+  color: var(--hint); cursor: pointer;
+  font-size: 14px; line-height: 1;
+  padding: 2px 4px; border-radius: 4px;
+  flex-shrink: 0; transition: color .12s;
+}
+.delete-btn:hover { color: #d48a8a; }
+.edit-mode .delete-btn { display: block; }
+
+/* ── NOGO PILLS ── */
+.nogo-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.nogo-pill {
+  font-size: 11px; font-weight: 500;
+  padding: 4px 11px; border-radius: 20px;
+  background: rgba(210,90,90,.12); border: 1px solid rgba(210,90,90,.22);
+  color: #d48a8a;
+}
+
+/* ── SCHNITTSTELLEN ── */
+.iface-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.iface-pill {
+  font-size: 11px; padding: 4px 11px; border-radius: 20px;
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--hint); border-radius: 2px; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation: fadeSlide .22s ease forwards; }
+
+/* ── SAVE TOAST ── */
+.toast {
+  position: fixed; bottom: 28px; right: 28px;
+  background: rgba(29,158,117,.9);
+  color: #d0f0e4; font-size: 12px; font-weight: 500;
+  padding: 9px 18px; border-radius: 8px;
+  transform: translateY(60px); opacity: 0;
+  transition: all .25s ease; pointer-events: none; z-index: 999;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* ── NAV ── */
+.nav-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 28px;display:flex;gap:2px;}
+.nav-link{display:flex;align-items:center;gap:7px;padding:12px 14px;font-size:12px;font-weight:500;color:var(--muted);text-decoration:none;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;}
+.nav-link:hover{color:var(--text);}
+.nav-link.active{color:var(--text);border-bottom-color:var(--text);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">Intranet · Gebäudedienst</div>
+  <div class="topbar-right">
+    <div class="topbar-clock" id="clock"></div>
+  </div>
+</div>
+<nav class="nav-bar">
+  <a class="nav-link" href="index.html">⌂ Start</a>
+  <a class="nav-link active" href="rollenkarten.html">◫ Rollenkarten</a>
+  <a class="nav-link" href="organigramm.html">◈ Organigramm</a>
+  <a class="nav-link" href="checklisten.html">✓ Checklisten</a>
+  <a class="nav-link" href="schwarzesbrett.html">◉ Schwarzes Brett</a>
+</nav>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <div class="sidebar-title">Positionen</div>
+      <div class="sidebar-count"><span>12</span> Rollen</div>
+    </div>
+
+    <span class="grp-label">Geschäftsführung</span>
+    <button class="person-btn" data-r="gf1" onclick="sel('gf1')" style="--acc:#b8b2f0">
+      <div class="pav" style="background:rgba(127,119,221,.2);color:#b8b2f0">G1</div>
+      <div class="pinfo"><div class="pname">GF 1 – Operativ</div><div class="prole">Betrieb & Qualität</div></div>
+    </button>
+    <button class="person-btn" data-r="gf2" onclick="sel('gf2')" style="--acc:#6dd4ab">
+      <div class="pav" style="background:rgba(29,158,117,.2);color:#6dd4ab">G2</div>
+      <div class="pinfo"><div class="pname">GF 2 – Kaufmännisch</div><div class="prole">Finanzen & Verträge</div></div>
+    </button>
+
+    <div class="grp-sep"></div>
+    <span class="grp-label">Vertrieb</span>
+    <button class="person-btn" data-r="vtl" onclick="sel('vtl')" style="--acc:#e090b4">
+      <div class="pav" style="background:rgba(212,83,126,.2);color:#e090b4">VL</div>
+      <div class="pinfo"><div class="pname">Vertriebsleitung</div><div class="prole">Steuerung Vertrieb</div></div>
+    </button>
+    <button class="person-btn" data-r="bzl" onclick="sel('bzl')" style="--acc:#e0b880">
+      <div class="pav" style="background:rgba(212,160,80,.2);color:#e0b880">BZ</div>
+      <div class="pinfo"><div class="pname">Bezirksleitung Vertrieb</div><div class="prole">Gebiet & Kunden</div></div>
+    </button>
+    <button class="person-btn" data-r="vtma" onclick="sel('vtma')" style="--acc:#e0a0c8">
+      <div class="pav" style="background:rgba(200,100,160,.2);color:#e0a0c8">VM</div>
+      <div class="pinfo"><div class="pname">Vertrieb MA</div><div class="prole">Aktiver Vertrieb</div></div>
+    </button>
+
+    <div class="grp-sep"></div>
+    <span class="grp-label">Betrieb</span>
+    <button class="person-btn" data-r="bl" onclick="sel('bl')" style="--acc:#7ab8e8">
+      <div class="pav" style="background:rgba(55,138,221,.2);color:#7ab8e8">BL</div>
+      <div class="pinfo"><div class="pname">Betriebsleitung</div><div class="prole">Tagessteuerung</div></div>
+    </button>
+    <button class="person-btn" data-r="disp" onclick="sel('disp')" style="--acc:#e8c060">
+      <div class="pav" style="background:rgba(232,180,80,.2);color:#e8c060">DI</div>
+      <div class="pinfo"><div class="pname">Disponent</div><div class="prole">Einsatzplanung</div></div>
+    </button>
+    <button class="person-btn" data-r="ob" onclick="sel('ob')" style="--acc:#f0a070">
+      <div class="pav" style="background:rgba(240,140,80,.2);color:#f0a070">OB</div>
+      <div class="pinfo"><div class="pname">Objektbetreuer</div><div class="prole">Qualität vor Ort</div></div>
+    </button>
+    <button class="person-btn" data-r="bg" onclick="sel('bg')" style="--acc:#90d870">
+      <div class="pav" style="background:rgba(100,200,80,.2);color:#90d870">BG</div>
+      <div class="pinfo"><div class="pname">Bereichsleitung Garten</div><div class="prole">Garten & Außenanlagen</div></div>
+    </button>
+
+    <div class="grp-sep"></div>
+    <span class="grp-label">Support</span>
+    <button class="person-btn" data-r="verw" onclick="sel('verw')" style="--acc:#d0a0e0">
+      <div class="pav" style="background:rgba(180,120,200,.2);color:#d0a0e0">VW</div>
+      <div class="pinfo"><div class="pname">Verwaltung</div><div class="prole">Admin & Entlastung</div></div>
+    </button>
+    <button class="person-btn" data-r="mat" onclick="sel('mat')" style="--acc:#a0c8a0">
+      <div class="pav" style="background:rgba(120,180,120,.2);color:#a0c8a0">ML</div>
+      <div class="pinfo"><div class="pname">Material & Wäsche</div><div class="prole">Logistik & Versorgung</div></div>
+    </button>
+    <button class="person-btn" data-r="bm" onclick="sel('bm')" style="--acc:#80c8d8">
+      <div class="pav" style="background:rgba(80,180,200,.2);color:#80c8d8">BM</div>
+      <div class="pinfo"><div class="pname">Beschwerdemanagement</div><div class="prole">Tickets & Kundenfeedback</div></div>
+    </button>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="main">
+    <div class="empty-state">
+      <div class="empty-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="3"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="13" y2="13"/>
+        </svg>
+      </div>
+      <div class="empty-title">Rolle auswählen</div>
+      <div class="empty-sub">Klicke links auf eine Position.</div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast">Änderungen gespeichert</div>
+
+<script>
+const DATA = {
+  gf1: {
+    initials:'G1', avBg:'rgba(127,119,221,.2)', avCol:'#b8b2f0',
+    badge:'Geschäftsführung · Operativ', badgeBg:'rgba(127,119,221,.2)', badgeCol:'#b8b2f0',
+    name:'GF 1', sub:'Operatives Geschäft',
+    ziel:'Stabiler, effizienter und skalierbarer operativer Betrieb.',
+    kpis:[{v:'Reklamationen',l:'Quote überwachen'},{v:'Auslastung',l:'KPI täglich'},{v:'Personal',l:'Stabilität sichern'}],
+    sections:[
+      {title:'Kernaufgaben', icon:'🛠', freq:'laufend', fc:'f-event', items:['Steuerung der Betriebsleitung','Festlegung von Prozessen und Standards','Entscheidung bei Eskalationen','Kontrolle von Qualität und Effizienz','Weiterentwicklung Systeme & Automatisierung']},
+      {title:'Tägliche Aufgaben', icon:'📅', freq:'täglich', fc:'f-daily', items:['Abstimmung mit Betriebsleitung','Prüfung kritischer Themen']},
+      {title:'Wöchentliche Aufgaben', icon:'📊', freq:'wöchentlich', fc:'f-weekly', items:['Analyse Qualität, Auslastung, Probleme','Strategieanpassung operativ']},
+      {title:'Schnittstellen', icon:'🔗', freq:'', fc:'', items:['Betriebsleitung','GF 2','Vertrieb']},
+    ],
+    decisions:[
+      {sit:'Operative Grundsatzthemen', badge:'Selbst entscheiden', cls:'d-self'},
+      {sit:'Eskalationen', badge:'Selbst entscheiden', cls:'d-self'},
+      {sit:'Eingriff ins Tagesgeschäft', badge:'No-Go', cls:'d-never'},
+      {sit:'Direkte Mitarbeitersteuerung', badge:'No-Go', cls:'d-never'},
+      {sit:'Gesamtverantwortung delegieren', badge:'Nie', cls:'d-never'},
+    ],
+    rules:[
+      {type:'green', text:'Darf: alle operativen Grundsatzthemen, Eskalationen entscheiden'},
+      {type:'red',   text:'Darf NICHT delegieren: Gesamtverantwortung'},
+      {type:'red',   text:'No-Gos: Eingriff ins Tagesgeschäft, direkte Mitarbeitersteuerung'},
+    ],
+    nogos:['Eingriff ins Tagesgeschäft','Direkte Mitarbeitersteuerung'],
+  },
+  gf2: {
+    initials:'G2', avBg:'rgba(29,158,117,.2)', avCol:'#6dd4ab',
+    badge:'Geschäftsführung · Kaufmännisch', badgeBg:'rgba(29,158,117,.2)', badgeCol:'#6dd4ab',
+    name:'GF 2', sub:'Kaufmännisch',
+    ziel:'Finanzielle Stabilität und Profitabilität des Unternehmens.',
+    kpis:[{v:'Liquidität',l:'täglich prüfen'},{v:'Gewinnmarge',l:'KPI monatlich'},{v:'Lohnquote',l:'im Blick halten'}],
+    sections:[
+      {title:'Kernaufgaben', icon:'🛠', freq:'laufend', fc:'f-event', items:['Lohnabrechnung & Kontrolle','Buchhaltung steuern','Vertragsmanagement','Liquiditätsplanung','Kostenkontrolle']},
+      {title:'Tägliche Aufgaben', icon:'📅', freq:'täglich', fc:'f-daily', items:['Zahlungsströme prüfen','Rückfragen klären']},
+      {title:'Wöchentliche Aufgaben', icon:'📊', freq:'wöchentlich', fc:'f-weekly', items:['Liquiditätsübersicht erstellen','Kostenanalyse durchführen']},
+      {title:'Schnittstellen', icon:'🔗', freq:'', fc:'', items:['Verwaltung','Steuerberater','GF 1']},
+    ],
+    decisions:[
+      {sit:'Finanzielle Themen', badge:'Selbst entscheiden', cls:'d-self'},
+      {sit:'Vertragsfreigaben', badge:'Selbst entscheiden', cls:'d-self'},
+      {sit:'Operative Planung', badge:'Nie – GF 1', cls:'d-never'},
+      {sit:'Operative Einmischung', badge:'No-Go', cls:'d-never'},
+    ],
+    rules:[
+      {type:'green', text:'Darf: finanzielle Themen und Vertragsfreigaben selbst entscheiden'},
+      {type:'red',   text:'Darf NICHT: operative Planung – das ist GF 1'},
+      {type:'red',   text:'No-Gos: operative Einmischung, fehlende Finanzkontrolle'},
+    ],
+    nogos:['Operative Einmischung','Fehlende Kontrolle'],
+  },
+  vtl: {
+    initials:'VL', avBg:'rgba(212,83,126,.2)', avCol:'#e090b4',
+    badge:'Vertrieb · Führung', badgeBg:'rgba(212,83,126,.2)', badgeCol:'#e090b4',
+    name:'Vertriebsleitung', sub:'Strukturierter & planbarer Vertrieb',
+    ziel:'Strukturierter und planbarer Vertrieb mit messbaren Ergebnissen.',
+    kpis:[{v:'Abschlussquote',l:'KPI wöchentlich'},{v:'Angebote',l:'Durchlauf tracken'},{v:'Umsatz',l:'Entwicklung monatlich'}],
+    sections:[
+      {title:'Kernaufgaben', icon:'🛠', freq:'laufend', fc:'f-event', items:['Führung Vertriebsmitarbeiter','Angebotsprozesse steuern','Lead-Nachverfolgung sicherstellen','Vertriebsstruktur aufbauen & pflegen']},
+      {title:'Tägliche Aufgaben', icon:'📅', freq:'täglich', fc:'f-daily', items:['Pipeline prüfen','Team steuern']},
+      {title:'Wöchentliche Aufgaben', icon:'📊', freq:'wöchentlich', fc:'f-weekly', items:['Vertriebszahlen analysieren','Abstimmung mit GF']},
+      {title:'Schnittstellen', icon:'🔗', freq:'', fc:'', items:['Vertrieb MA','Bezirksleitung','GF']},
+    ],
+    decisions:[
+      {sit:'Operative Vertriebsprioritäten', badge:'Selbst entscheiden', cls:'d-self'},
+      {sit:'Unternehmensstrategie', badge:'Nie – GF', cls:'d-never'},
+      {sit:'Fehlende Struktur tolerieren', badge:'No-Go', cls:'d-never'},
+    ],
+    rules:[
+      {type:'green', text:'Darf: operative Vertriebsprioritäten selbst setzen und Team steuern'},
+      {type:'red',   text:'Darf NICHT: Unternehmensstrategie – das ist GF'},
+      {type:'red',   text:'No-Gos: fehlende Struktur, keine Kontrolle über Pipeline'},
+    ],
+    nogos:['Fehlende Struktur','Keine Pipeline-Kontrolle'],
+  },
+  bzl: {
+    initials:'BZ', avBg:'rgba(212,160,80,.2)', avCol:'#e0b880',
+    badge:'Vertrieb · Gebiet', badgeBg:'rgba(212,160,80,.2)', badgeCol:'#e0b880',
+    name:'Bezirksleitung Vertrieb', sub:'Umsatzwachstum & Kundenbindung im Gebiet',
+    ziel:'Umsatzwachstum und Kundenbindung im zugewiesenen Gebiet.',
+    kpis:[{v:'Umsatz',l:'Gebiet monatlich'},{v:'Abschlüsse',l:'Quote wöchentlich'},{v:'Kunden',l:'Zufriedenheit tracken'}],
+    sections:[
+      {title:'Kernaufgaben', icon:'🛠', freq:'laufend', fc:'f-event', items:['Neukundenakquise im Gebiet','Bestandskundenentwicklung','Angebotsverhandlungen führen','Marktanalyse betreiben']},
+      {title:'Tägliche Aufgaben', icon:'📅', freq:'täglich', fc:'f-daily', items:['Kundenkontakte pflegen','Termine wahrnehmen']},
+      {title:'Wöchentliche Aufgaben', icon:'📊', freq:'wöchentlich', fc:'f-weekly', items:['Angebotsverfolgung','Pipeline-Auswertung']},
+      {title:'Schnittstellen', icon:'🔗', freq:'', fc:'', items:['Vertriebsleitung','GF','Betriebsleitung']},
+    ],
+    decisions:[
+      {sit:'Preise im definierten Rahmen', badge:'Selbst entscheiden', cls:'d-self'},
+      {sit:'Kundenmaßnahmen', badge:'Selbst entscheiden', cls:'d-self'},
+      {sit:'Strategische Preisstruktur', badge:'Nie – VL / GF', cls:'d-never'},
+      {sit:'Unstrukturierter Vertrieb', badge:'No-Go', cls:'d-never'},
+    ],
+    rules:[
+      {type:'green', text:'Darf: Preise im Rahmen, Kundenmaßnahmen und Terminierung selbst'},
+      {type:'amber', text:'Abstimmen mit VL: größere Rabatte, neue Konditionen'},
+      {type:'red',   text:'No-Gos: unstrukturierter Vertrieb, fehlendes Nachfassen'},
+    ],
+    nogos:['Unstrukturierter Vertrieb','Fehlendes Nachfassen'],
+  },
+  vtma: {
+    initials:'VM', avBg:'rgba(200,100,160,.2)', avCol:'#e0a0c8',
+    badge:'Vertrieb · Mitarbeiter', badgeBg:'rgba(200,100,160,.2)', badgeCol:'#e0a0c8',
+    name:'Vertrieb MA', sub:'Kontinuierlicher Auftragszufluss',
+    ziel:'Kontinuierlicher Auftragszufluss durch aktiven Tagesvertrieb.',
+    kpis:[{v:'Termine',l:'täglich tracken'},{v:'Angebote',l:'wöchentlich verfolgen'},{v:'Abschlüsse',l:'monatlich messen'}],
+    sections:[
+      {title:'Kernaufgaben', icon:'🛠', freq:'laufend', fc:'f-event', items:['Erstkontakt herstellen','Termine vereinbaren','Angebote vorbereiten','Konsequent nachfassen']},
+      {title:'Tägliche Aufgaben', icon:'📅', freq:'täglich', fc:'f-daily', items:['Kundenkontakt aktiv','Angebote verfolgen']},
+      {title:'Wöchentliche Aufgaben', icon:'📊', freq:'wöchentlich', fc:'f-weekly', items:['Pipeline pflegen & aktualisieren']},
+      {title:'Schnittstellen', icon:'🔗', freq:'', fc:'', items:['Vertriebsleitung','Verwaltung']},
+    ],
+    decisions:[
+      {sit:'Terminierung', badge:'Selbst entscheiden', cls:'d-self'},
+      {sit:'Preise', badge:'Nie – Bezirksleitung', cls:'d-never'},
+      {sit:'Kein Follow-up machen', badge:'No-Go', cls:'d-never'},
+      {sit:'Schlechte Dokumentation', badge:'No-Go', cls:'d-never'},
+    ],
+    rules:[
+      {type:'green', text:'Darf: Terminierung eigenständig'},
+      {type:'amber', text:'Abstimmen: Angebote und Preisrahmen mit Bezirksleitung'},
+      {type:'red',   text:'No-Gos: kein Follow-up, schlechte Pipeline-Dokumentation'},
+    ],
+    nogos:['Kein Follow-up','Schlechte Dokumentation'],
+  },
+  bl: {
+    initials:'BL', avBg:'rgba(55,138,221,.2)', avCol:'#7ab8e8',
+    badge:'Betrieb · Führung', badgeBg:'rgba(55,138,221,.2)', badgeCol:'#7ab8e8',
+    name:'Betriebsleitung', sub:'Reibungsloser operativer Ablauf',
+    ziel:'Reibungsloser operativer Ablauf im gesamten Tagesgeschäft.',
+    kpis:[{v:'Störungen',l:'Quote minimieren'},{v:'Ausfälle',l:'schnell reagieren'},{v:'Qualität',l:'laufend sichern'}],
+    sections:[
+      {title:'Kernaufgaben', icon:'🛠', freq:'laufend', fc:'f-event', items:['Disposition steuern','Objektbetreuer führen','Probleme aktiv lösen','Qualität sichern']},
+      {title:'Tägliche Aufgaben', icon:'📅', freq:'täglich', fc:'f-daily', items:['Abstimmung mit Disponenten (10 Min)','Problemklärung Tagesbetrieb']},
+      {title:'Wöchentliche Aufgaben', icon:'📊', freq:'wöchentlich', fc:'f-weekly', items:['Überblick Betriebslage','Engpässe identifizieren & lösen']},
+      {title:'Schnittstellen', icon:'🔗', freq:'', fc:'', items:['GF 1','Disponent','Objektbetreuer']},
+    ],
+    decisions:[
+      {sit:'Personalverschiebung', badge:'Selbst entscheiden', cls:'d-self'},
+      {sit:'Operative Maßnahmen', badge:'Selbst entscheiden', cls:'d-self'},
+      {sit:'Strategische Themen', badge:'GF 1 fragen', cls:'d-ask'},
+      {sit:'Chaos tolerieren', badge:'No-Go', cls:'d-never'},
+      {sit:'Probleme weiterreichen ohne Lösung', badge:'No-Go', cls:'d-never'},
+    ],
+    rules:[
+      {type:'green', text:'Darf: Personalverschiebung, operative Maßnahmen selbst entscheiden'},
+      {type:'amber', text:'GF 1 fragen: strategische Themen, größere Investitionen'},
+      {type:'red',   text:'No-Gos: Chaos tolerieren, Probleme weiterreichen ohne Lösungsversuch'},
+    ],
+    nogos:['Chaos tolerieren','Probleme einfach weiterreichen'],
+  },
+  disp: {
+    initials:'DI', avBg:'rgba(232,180,80,.2)', avCol:'#e8c060',
+    badge:'Betrieb · Planung', badgeBg:'rgba(232,180,80,.2)', badgeCol:'#e8c060',
+    name:'Disponent', sub:'Lückenlose Einsatzplanung',
+    ziel:'Lückenlose Einsatzplanung – kein Objekt bleibt unbesetzt.',
+    kpis:[{v:'Offene',l:'Einsätze täglich = 0'},{v:'Reaktion',l:'Zeit bei Ausfall'},{v:'Planung',l:'Vorschau 7 Tage'}],
+    sections:[
+      {title:'Kernaufgaben', icon:'🛠', freq:'laufend', fc:'f-event', items:['Dienstplanung erstellen','Ausfälle managen','Vertretung organisieren','Engpässe frühzeitig erkennen']},
+      {title:'Tägliche Aufgaben', icon:'📅', freq:'täglich', fc:'f-daily', items:['Planung prüfen & aktualisieren','Ausfälle sofort lösen']},
+      {title:'Wöchentliche Aufgaben', icon:'📊', freq:'wöchentlich', fc:'f-weekly', items:['Vorschau nächste Woche erstellen']},
+      {title:'Schnittstellen', icon:'🔗', freq:'', fc:'', items:['Betriebsleitung','Objektbetreuer']},
+    ],
+    decisions:[
+      {sit:'Einsatzplanung täglich', badge:'Selbst entscheiden', cls:'d-self'},
+      {sit:'Vertretung organisieren', badge:'Selbst entscheiden', cls:'d-self'},
+      {sit:'Preise', badge:'Nie', cls:'d-never'},
+      {sit:'Neueinstellungen', badge:'Nie – Betriebsleitung', cls:'d-never'},
+      {sit:'Unbesetzte Objekte tolerieren', badge:'No-Go', cls:'d-never'},
+    ],
+    rules:[
+      {type:'green', text:'Darf: gesamte Einsatzplanung, Vertretungen, Urlaubsgenehmigung eigenständig'},
+      {type:'amber', text:'Betriebsleitung informieren: dauerhafte Engpässe, Neubedarfe'},
+      {type:'red',   text:'No-Go: unbesetzte Objekte – das ist der wichtigste KPI dieser Rolle'},
+    ],
+    nogos:['Unbesetzte Objekte'],
+  },
+  ob: {
+    initials:'OB', avBg:'rgba(240,140,80,.2)', avCol:'#f0a070',
+    badge:'Betrieb · Außendienst', badgeBg:'rgba(240,140,80,.2)', badgeCol:'#f0a070',
+    name:'Objektbetreuer', sub:'Saubere Objekte & zufriedene Kunden',
+    ziel:'Saubere Objekte und zufriedene Kunden – täglich vor Ort.',
+    kpis:[{v:'Reklam.',l:'Quote je Objekt'},{v:'Qualität',l:'Begehungsprotokoll'},{v:'Reaktion',l:'Zeit bei Mängeln'}],
+    sections:[
+      {title:'Kernaufgaben', icon:'🛠', freq:'laufend', fc:'f-event', items:['Qualitätskontrollen durchführen','Reklamationen entgegennehmen & lösen','Mitarbeiter vor Ort führen','Material prüfen & melden']},
+      {title:'Tägliche Aufgaben', icon:'📅', freq:'täglich', fc:'f-daily', items:['Kontrollen in Objekten','Probleme sofort lösen']},
+      {title:'Wöchentliche Aufgaben', icon:'📊', freq:'wöchentlich', fc:'f-weekly', items:['Begehungen durchführen & protokollieren']},
+      {title:'Schnittstellen', icon:'🔗', freq:'', fc:'', items:['Betriebsleitung','Disponent']},
+    ],
+    decisions:[
+      {sit:'Nachreinigung anordnen', badge:'Selbst entscheiden', cls:'d-self'},
+      {sit:'Material bis 100 € bestellen', badge:'Selbst', cls:'d-self'},
+      {sit:'Preise', badge:'Nie', cls:'d-never'},
+      {sit:'Probleme ignorieren', badge:'No-Go', cls:'d-never'},
+    ],
+    rules:[
+      {type:'green', text:'Darf: Nachreinigung, Material bis 100 €, Kleinmaßnahmen vor Ort selbst'},
+      {type:'amber', text:'Betriebsleitung: Schäden >300 €, Kündigungsdrohung, Personalbedarf'},
+      {type:'red',   text:'No-Go: Probleme ignorieren – jeder Mangel muss dokumentiert werden'},
+    ],
+    nogos:['Probleme ignorieren'],
+  },
+  verw: {
+    initials:'VW', avBg:'rgba(180,120,200,.2)', avCol:'#d0a0e0',
+    badge:'Support · Administration', badgeBg:'rgba(180,120,200,.2)', badgeCol:'#d0a0e0',
+    name:'Verwaltung', sub:'Struktur und Entlastung im Büro',
+    ziel:'Struktur und Entlastung – damit niemand sonst Büroarbeit macht.',
+    kpis:[{v:'Bearbeit.',l:'Zeit je Vorgang'},{v:'Fehler',l:'Quote minimieren'},{v:'Offene',l:'Posten wöchentlich'}],
+    sections:[
+      {title:'Kernaufgaben', icon:'🛠', freq:'laufend', fc:'f-event', items:['Rechnungen erstellen & versenden','Angebote (Standard) bearbeiten','Datenpflege & Ablage','Abwesenheiten erfassen']},
+      {title:'Tägliche Aufgaben', icon:'📅', freq:'täglich', fc:'f-daily', items:['E-Mails prüfen & beantworten','Dokumente ablegen']},
+      {title:'Wöchentliche Aufgaben', icon:'📊', freq:'wöchentlich', fc:'f-weekly', items:['Offene Posten prüfen','Wochenbericht an Betriebsleitung / GF 2']},
+      {title:'Schnittstellen', icon:'🔗', freq:'', fc:'', items:['GF 2','Betriebsleitung','Disponent']},
+    ],
+    decisions:[
+      {sit:'Standardprozesse', badge:'Selbst ausführen', cls:'d-self'},
+      {sit:'Bestellungen bis 500 €', badge:'Selbst', cls:'d-self'},
+      {sit:'Strategische Themen', badge:'Nie – GF', cls:'d-never'},
+      {sit:'Chaos in Daten', badge:'No-Go', cls:'d-never'},
+    ],
+    rules:[
+      {type:'green', text:'Darf: Standardprozesse, E-Mails, Bestellungen bis 500 €, Angebote nach Preisliste'},
+      {type:'amber', text:'GF 2 / Betriebsleitung: Sonderfälle, unklare Situationen'},
+      {type:'red',   text:'No-Go: Datenchaos – saubere Ablage ist die wichtigste Pflicht dieser Rolle'},
+    ],
+    nogos:['Chaos in Daten'],
+  },
+  mat: {
+    initials:'ML', avBg:'rgba(120,180,120,.2)', avCol:'#a0c8a0',
+    badge:'Support · Logistik', badgeBg:'rgba(120,180,120,.2)', badgeCol:'#a0c8a0',
+    name:'Material & Wäschelogistik', sub:'Ständige Versorgung aller Objekte',
+    ziel:'Ständige Materialversorgung – kein Objekt bleibt ohne Reinigungsmittel.',
+    kpis:[{v:'Material',l:'Verfügbarkeit 100%'},{v:'Reklam.',l:'durch Material = 0'},{v:'Touren',l:'täglich abgeschlossen'}],
+    sections:[
+      {title:'Kernaufgaben', icon:'🛠', freq:'laufend', fc:'f-event', items:['Material an Objekte liefern','Wäsche waschen & ausliefern','Lagerbestand prüfen & melden']},
+      {title:'Tägliche Aufgaben', icon:'📅', freq:'täglich', fc:'f-daily', items:['Touren fahren','Wäsche aufbereiten']},
+      {title:'Wöchentliche Aufgaben', icon:'📊', freq:'wöchentlich', fc:'f-weekly', items:['Bestand prüfen & Nachbestellung anstoßen']},
+      {title:'Schnittstellen', icon:'🔗', freq:'', fc:'', items:['Objektbetreuer','Verwaltung']},
+    ],
+    decisions:[
+      {sit:'Tourenpriorisierung', badge:'Selbst entscheiden', cls:'d-self'},
+      {sit:'Bestellungen ohne Freigabe', badge:'Nie', cls:'d-never'},
+      {sit:'Leere Objekte tolerieren', badge:'No-Go', cls:'d-never'},
+    ],
+    rules:[
+      {type:'green', text:'Darf: Touren und Priorisierung selbst planen'},
+      {type:'amber', text:'Verwaltung informieren: Nachbestellbedarf, Lieferengpässe'},
+      {type:'red',   text:'No-Go: leere Objekte – sofortige Eskalation an Objektbetreuer/Verwaltung'},
+    ],
+    nogos:['Leere Objekte'],
+  },
+  bm: {
+    initials:'BM', avBg:'rgba(80,180,200,.2)', avCol:'#80c8d8',
+    badge:'Support · Qualitätssicherung', badgeBg:'rgba(80,180,200,.2)', badgeCol:'#80c8d8',
+    name:'Beschwerdemanagement', sub:'Schnelle, strukturierte Beschwerdebearbeitung',
+    ziel:'Schnelle, strukturierte und lösungsorientierte Bearbeitung aller Kundenbeschwerden zur Sicherstellung der Kundenzufriedenheit.',
+    kpis:[{v:'<24h',l:'Reaktionszeit'},{v:'Lösungszeit',l:'je Ticket tracken'},{v:'Wieder-',l:'holungsquote messen'}],
+    sections:[
+      {title:'Kernaufgaben', icon:'🛠', freq:'laufend', fc:'f-event', items:[
+        'Entgegennahme und Erfassung von Beschwerden (System / Ticket)',
+        'Zuweisung an zuständigen Objektbetreuer',
+        'Überwachung der Bearbeitung (Fristen, Status)',
+        'Sicherstellung der Rückmeldung an Kunden',
+        'Dokumentation aller Fälle',
+        'Auswertung von wiederkehrenden Problemen',
+      ]},
+      {title:'Tägliche Aufgaben', icon:'📅', freq:'täglich', fc:'f-daily', items:[
+        'Neue Beschwerden erfassen',
+        'Tickets erstellen und zuweisen',
+        'Status prüfen und nachfassen',
+        'Rückmeldungen an Kunden koordinieren',
+      ]},
+      {title:'Wöchentliche Aufgaben', icon:'📊', freq:'wöchentlich', fc:'f-weekly', items:[
+        'Auswertung von Beschwerden (Muster, Häufigkeit)',
+        'Abstimmung mit Betriebsleitung bei Auffälligkeiten',
+        'Optimierung von Abläufen',
+      ]},
+      {title:'Schnittstellen', icon:'🔗', freq:'', fc:'', items:[
+        'Objektbetreuer (Bearbeitung vor Ort)',
+        'Disponent (Umsetzung / Planung)',
+        'Betriebsleitung (Eskalation)',
+        'Verwaltung (Dokumentation)',
+      ]},
+    ],
+    decisions:[
+      {sit:'Priorisierung von Beschwerden', badge:'Selbst entscheiden', cls:'d-self'},
+      {sit:'Weiterleitung an zuständige Rolle', badge:'Selbst entscheiden', cls:'d-self'},
+      {sit:'Operative Maßnahmen vor Ort', badge:'Nie – Objektbetreuer', cls:'d-never'},
+      {sit:'Preisnachlässe oder Vertragsänderungen', badge:'Nie – GF', cls:'d-never'},
+      {sit:'Beschwerde ohne Dokumentation schließen', badge:'No-Go', cls:'d-never'},
+    ],
+    rules:[
+      {type:'green', text:'Darf: Priorisierung, Zuweisung und Weiterleitung an zuständige Rollen selbst entscheiden'},
+      {type:'amber', text:'Betriebsleitung einschalten: Auffällige Muster, wiederkehrende Probleme, Eskalationen'},
+      {type:'red',   text:'No-Gos: Beschwerden nicht dokumentieren, keine Rückmeldung an Kunden, Weiterleitung ohne klare Zuständigkeit, Diskussion statt Lösung'},
+    ],
+    nogos:['Keine Dokumentation','Keine Kundenrückmeldung','Weiterleitung ohne Zuständigkeit','Diskussion statt Lösung'],
+  },
+  bg: {
+    initials:'BG', avBg:'rgba(100,200,80,.2)', avCol:'#90d870',
+    badge:'Betrieb · Außenanlagen', badgeBg:'rgba(100,200,80,.2)', badgeCol:'#90d870',
+    name:'Bereichsleitung Garten', sub:'Garten, Außenanlagen & Mülltonnendienst',
+    ziel:'Effiziente, qualitativ saubere und wirtschaftliche Durchführung aller Garten- und Außenanlagenleistungen.',
+    kpis:[{v:'Termine',l:'Mähintervalle einhalten'},{v:'Reklamationen',l:'Gartenbereich = 0'},{v:'Auslastung',l:'Teams täglich'}],
+    sections:[
+      {title:'Kernaufgaben', icon:'🛠', freq:'laufend', fc:'f-event', items:[
+        'Planung und Organisation aller Garteneinsätze (Abstimmung mit Disposition)',
+        'Steuerung und Führung der Gartenmitarbeiter',
+        'Kontrolle der Arbeitsqualität vor Ort',
+        'Termingerechte Ausführung sicherstellen (Mähzyklen, Mülltonnendienst)',
+        'Material- und Geräteeinsatz planen (Mäher, Werkzeuge)',
+        'Abstimmung mit Vertrieb bei Zusatzleistungen',
+        'Unterstützung bei Angebotskalkulation für Gartenleistungen',
+      ]},
+      {title:'Tägliche Aufgaben', icon:'📅', freq:'täglich', fc:'f-daily', items:[
+        'Überblick über laufende Einsätze verschaffen',
+        'Abstimmung mit Disponent bei Änderungen / Ausfällen',
+        'Klärung von Problemen vor Ort',
+        'Rückmeldung aus Teams aufnehmen',
+      ]},
+      {title:'Wöchentliche Aufgaben', icon:'📊', freq:'wöchentlich', fc:'f-weekly', items:[
+        'Touren und Einsatzplanung optimieren',
+        'Kontrolle ausgewählter Objekte',
+        'Abstimmung mit Betriebsleitung',
+        'Bedarf an Personal / Material melden',
+      ]},
+      {title:'Schnittstellen', icon:'🔗', freq:'', fc:'', items:[
+        'Disponent (Planung)',
+        'Betriebsleitung (übergeordnet)',
+        'Objektbetreuer (Qualität / Rückmeldungen)',
+        'Vertrieb (Zusatzleistungen / Angebote)',
+      ]},
+    ],
+    decisions:[
+      {sit:'Einsatzprioritäten im Gartenbereich', badge:'Selbst entscheiden', cls:'d-self'},
+      {sit:'Mitarbeiterzuweisung Garten (Abstimmung Disp.)', badge:'Selbst + Disponent', cls:'d-self'},
+      {sit:'Operative Anpassungen vor Ort', badge:'Selbst entscheiden', cls:'d-self'},
+      {sit:'Preise und Verträge', badge:'Nie – GF', cls:'d-never'},
+      {sit:'Strategische Änderungen', badge:'Nie – Betriebsleitung / GF', cls:'d-never'},
+      {sit:'Unkoordinierte Einsätze', badge:'No-Go', cls:'d-never'},
+    ],
+    rules:[
+      {type:'green', text:'Darf: Einsatzprioritäten, Mitarbeiterzuweisung im Gartenbereich, operative Anpassungen vor Ort'},
+      {type:'amber', text:'Abstimmen mit: Disponent (Planung), Betriebsleitung (Personal/Materialbedarf), Vertrieb (Zusatzleistungen)'},
+      {type:'red',   text:'No-Gos: unkoordinierte Einsätze, verpasste Termine, fehlende Qualitätskontrolle, keine Rückmeldung bei Problemen'},
+    ],
+    nogos:['Unkoordinierte Einsätze','Verpasste Termine','Keine Qualitätskontrolle','Fehlende Rückmeldung'],
+  },
+};
+
+let current = null;
+let editMode = false;
+
+function sel(key) {
+  editMode = false;
+  current = key;
+  document.querySelectorAll('.person-btn').forEach(b => b.classList.toggle('active', b.dataset.r === key));
+  render();
+}
+
+function render() {
+  const d = DATA[current];
+  const main = document.getElementById('main');
+  main.innerHTML = `
+    <div class="animate-in" id="detail">
+      <div class="profile-header">
+        <div class="profile-av-lg" style="background:${d.avBg};color:${d.avCol}">${d.initials}</div>
+        <div class="profile-meta">
+          <div class="profile-badge" style="background:${d.badgeBg};color:${d.badgeCol}">${d.badge}</div>
+          <div class="profile-title"><strong>${d.name}</strong> · ${d.sub}</div>
+          <div class="profile-desc" id="f-ziel">${d.ziel}</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn-edit" id="btn-edit" onclick="toggleEdit()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Bearbeiten
+          </button>
+          <button class="btn-save" id="btn-save" onclick="saveEdit()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Speichern
+          </button>
+        </div>
+      </div>
+
+      <div class="edit-hint" id="edit-hint">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Klicke auf einen Text um ihn zu bearbeiten. Neue Einträge über den + Button.
+      </div>
+
+      <div class="kpi-row">
+        ${d.kpis.map((k,i) => `
+          <div class="kpi-card">
+            <div class="kpi-val" id="kpi-v-${i}" contenteditable="false">${k.v}</div>
+            <div class="kpi-label" id="kpi-l-${i}" contenteditable="false">${k.l}</div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="sections-grid" id="sec-grid">
+        ${d.sections.map((s,si) => renderSection(s, si)).join('')}
+      </div>
+
+      <div style="margin-bottom:32px">
+        <div class="sec-head" style="margin-bottom:10px">
+          <div class="sec-title">Entscheidungsmatrix</div>
+        </div>
+        <div class="decision-list" id="dec-list">
+          ${d.decisions.map((dec,di) => renderDec(dec,di)).join('')}
+        </div>
+        <button class="add-item-btn" onclick="addDec()" style="margin-top:6px">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Eintrag hinzufügen
+        </button>
+      </div>
+
+      <div style="margin-bottom:32px">
+        <div class="sec-head" style="margin-bottom:10px">
+          <div class="sec-title">Kompetenzrahmen</div>
+        </div>
+        <div class="rule-list">
+          ${d.rules.map(r => `
+            <div class="rule-card r-${r.type}">
+              <div class="rule-icon">${r.type==='green'?'✓':r.type==='amber'?'→':'✕'}</div>
+              <div>${r.text}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div>
+        <div class="sec-head" style="margin-bottom:10px">
+          <div class="sec-title">No-Gos</div>
+        </div>
+        <div class="nogo-list">
+          ${d.nogos.map(n => `<span class="nogo-pill">${n}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderSection(s, si) {
+  return `
+    <div class="sec-card">
+      <div class="sec-head">
+        <div class="sec-icon">${s.icon}</div>
+        <div class="sec-title">${s.title}</div>
+        ${s.freq ? `<span class="freq-tag ${s.fc}">${s.freq}</span>` : ''}
+      </div>
+      <div class="item-list" id="sec-${si}">
+        ${s.items.map((item, ii) => renderItem(item, si, ii)).join('')}
+      </div>
+      <button class="add-item-btn" onclick="addItem(${si})">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Hinzufügen
+      </button>
+    </div>
+  `;
+}
+
+function renderItem(item, si, ii) {
+  const d = DATA[current];
+  const colors = ['#b8b2f0','#6dd4ab','#7ab8e8','#e8c060','#f0a070','#e090b4','#d0a0e0','#a0c8a0','#e0b880','#e0a0c8'];
+  const col = colors[Object.keys(DATA).indexOf(current)] || '#888';
+  return `
+    <div class="item-row" id="item-${si}-${ii}">
+      <div class="item-dot" style="background:${col}"></div>
+      <div class="item-body" style="flex:1">
+        <div class="item-text" id="it-${si}-${ii}" contenteditable="false" onblur="updateItem(${si},${ii},this.textContent)">${item}</div>
+      </div>
+      <button class="delete-btn" onclick="deleteItem(${si},${ii})" title="Löschen">✕</button>
+    </div>
+  `;
+}
+
+function renderDec(dec, di) {
+  const labels = {'d-self':'Selbst','d-ask':'Rückfrage','d-never':'Nie','d-esc':'Eskalieren'};
+  return `
+    <div class="dec-row" id="dec-${di}">
+      <div class="dec-sit" id="ds-${di}" contenteditable="false" onblur="updateDec(${di},'sit',this.textContent)">${dec.sit}</div>
+      <span class="dec-badge ${dec.cls}">${dec.badge}</span>
+      <button class="delete-btn" onclick="deleteDec(${di})" title="Löschen">✕</button>
+    </div>
+  `;
+}
+
+function toggleEdit() {
+  editMode = !editMode;
+  const detail = document.getElementById('detail');
+  const btnEdit = document.getElementById('btn-edit');
+  const btnSave = document.getElementById('btn-save');
+  const hint    = document.getElementById('edit-hint');
+
+  detail.classList.toggle('edit-mode', editMode);
+  btnEdit.classList.toggle('active', editMode);
+  btnSave.classList.toggle('show', editMode);
+  hint.classList.toggle('show', editMode);
+
+  // toggle contenteditable on all editable fields
+  const fields = detail.querySelectorAll('.item-text, .dec-sit, .kpi-val, .kpi-label, .profile-desc');
+  fields.forEach(f => f.contentEditable = editMode ? 'true' : 'false');
+
+  if (editMode) {
+    const d = DATA[current];
+    d.kpis.forEach((k,i) => {
+      const vEl = document.getElementById(`kpi-v-${i}`);
+      const lEl = document.getElementById(`kpi-l-${i}`);
+      if (vEl) vEl.onblur = () => { k.v = vEl.textContent; };
+      if (lEl) lEl.onblur = () => { k.l = lEl.textContent; };
+    });
+    const zielEl = document.getElementById('f-ziel');
+    if (zielEl) zielEl.onblur = () => { d.ziel = zielEl.textContent; };
+  }
+}
+
+function saveEdit() {
+  editMode = false;
+  const detail = document.getElementById('detail');
+  const btnEdit = document.getElementById('btn-edit');
+  const btnSave = document.getElementById('btn-save');
+  const hint    = document.getElementById('edit-hint');
+
+  detail.classList.remove('edit-mode');
+  btnEdit.classList.remove('active');
+  btnSave.classList.remove('show');
+  hint.classList.remove('show');
+
+  const fields = detail.querySelectorAll('.item-text, .dec-sit, .kpi-val, .kpi-label, .profile-desc');
+  fields.forEach(f => f.contentEditable = 'false');
+
+  showToast('Änderungen gespeichert');
+}
+
+function updateItem(si, ii, val) {
+  DATA[current].sections[si].items[ii] = val.trim();
+}
+
+function updateDec(di, field, val) {
+  DATA[current].decisions[di][field] = val.trim();
+}
+
+function addItem(si) {
+  DATA[current].sections[si].items.push('Neuer Eintrag');
+  const ii = DATA[current].sections[si].items.length - 1;
+  const list = document.getElementById(`sec-${si}`);
+  const div = document.createElement('div');
+  div.innerHTML = renderItem('Neuer Eintrag', si, ii);
+  list.appendChild(div.firstElementChild);
+  const el = document.getElementById(`it-${si}-${ii}`);
+  if (el) {
+    el.contentEditable = editMode ? 'true' : 'false';
+    el.focus();
+    const r = document.createRange();
+    r.selectNodeContents(el); r.collapse(false);
+    const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  }
+}
+
+function deleteItem(si, ii) {
+  DATA[current].sections[si].items.splice(ii, 1);
+  const el = document.getElementById(`item-${si}-${ii}`);
+  if (el) el.remove();
+}
+
+function addDec() {
+  const newDec = {sit:'Neue Situation', badge:'Selbst', cls:'d-self'};
+  DATA[current].decisions.push(newDec);
+  const di = DATA[current].decisions.length - 1;
+  const list = document.getElementById('dec-list');
+  const div = document.createElement('div');
+  div.innerHTML = renderDec(newDec, di);
+  list.appendChild(div.firstElementChild);
+  const el = document.getElementById(`ds-${di}`);
+  if (el) {
+    el.contentEditable = 'true';
+    el.focus();
+    const r = document.createRange();
+    r.selectNodeContents(el); r.collapse(false);
+    const s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  }
+}
+
+function deleteDec(di) {
+  DATA[current].decisions.splice(di, 1);
+  const el = document.getElementById(`dec-${di}`);
+  if (el) el.remove();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function updateClock() {
+  const n = new Date();
+  const d = ['So','Mo','Di','Mi','Do','Fr','Sa'][n.getDay()];
+  const t = n.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+  const dt = n.toLocaleDateString('de-DE',{day:'numeric',month:'short'});
+  document.getElementById('clock').textContent = `${d} ${dt} · ${t}`;
+}
+updateClock();
+setInterval(updateClock, 30000);
+</script>
+</body>
+</html>
